@@ -1,0 +1,98 @@
+import speech_recognition as sr
+import webbrowser
+import music
+from openai import OpenAI
+from gtts import gTTS
+import pygame
+import os
+
+
+
+recognizer = sr.Recognizer()
+
+def speak(text):
+    tts = gTTS(text)
+    tts.save('temp.mp3') 
+
+    # Initialize Pygame mixer
+    pygame.mixer.init()
+
+    # Load the MP3 file
+    pygame.mixer.music.load('temp.mp3')
+
+    # Play the MP3 file
+    pygame.mixer.music.play()
+
+    # Keep the program running until the music stops playing
+    while pygame.mixer.music.get_busy():
+        pygame.time.Clock().tick(10)
+    
+    pygame.mixer.music.unload()
+    os.remove("temp.mp3") 
+
+def AI(command):
+    client = OpenAI(api_key="Open ai API Key",
+    )
+
+    completion = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[
+        {"role": "system", "content": "You are a virtual assistant named NOVA skilled in general tasks like Alexa and Google Cloud. Give short responses please"},
+        {"role": "user", "content": command}
+    ]
+    )
+
+    return completion.choices[0].message.content
+
+def comd_process(c):
+    if "open google" in c.lower():
+        webbrowser.open("https://google.com")
+    elif "open facebook" in c.lower():
+        webbrowser.open("https://facebook.com")
+    elif "open youtube" in c.lower():
+        webbrowser.open("https://youtube.com")
+    elif "open linkedin" in c.lower():
+        webbrowser.open("https://linkedin.com")
+    elif c.lower().startswith("play"):
+        song = c.lower().split(" ")[1]
+        link = music.Music[song]
+        webbrowser.open(link)
+
+   
+
+    else:       
+        output = AI(comd)
+        speak(output) 
+
+
+
+
+
+if __name__ == "__main__":
+    speak("Initializing Nova ....")
+    while True:
+        # Listen for the wake word "NOVA"
+           
+        r = sr.Recognizer()
+         
+        print("recognizing...")
+        try:
+            with sr.Microphone() as source:
+                print("Listening...")
+                audio = r.listen(source, timeout=2, phrase_time_limit=1)
+            word = r.recognize_google(audio)
+            if(word.lower() == "nova"):
+                speak("Yes")
+              
+                with sr.Microphone() as source:
+                    print("Nova Active...")
+                    audio = r.listen(source)
+                    comd = r.recognize_google(audio)
+
+                    comd_process(comd)
+
+
+        except ValueError as v:
+            print("Sorry,I didn't got you")
+
+
